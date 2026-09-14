@@ -1,0 +1,25 @@
+# Local-only files
+.DS_Store
+.venv/
+__pycache__/
+build/
+dist/
+target/
+desktop/node_modules/
+desktop/src-tauri/target/
+desktop/src-tauri/resources/
+desktop/src-tauri/gen/
+test-results/
+backups/
+*.log
+*.dmg
+*.zip
+*.p12
+*.cer
+*.key
+*.mobileprovision
+settings.json
+config.json
+models/
+state/
+.env

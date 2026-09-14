@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Creator Source Importer</title>
+<style>
+:root{color-scheme:light;font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#20302b;background:#f5f5ef}*{box-sizing:border-box}body{max-width:980px;margin:42px auto;padding:0 24px}header{display:flex;justify-content:space-between;align-items:center;gap:20px}.eyebrow{font-size:12px;letter-spacing:2px;color:#527164}h1{font-size:34px;letter-spacing:-1px;margin:6px 0}h2{font-size:21px;margin:0 0 14px}.muted{color:#68766f;font-size:14px}.card{background:#fff;border:1px solid #dbe2dc;border-radius:20px;padding:26px;margin:22px 0;box-shadow:0 3px 14px #24382708}.step{display:grid;grid-template-columns:38px 1fr;gap:12px;margin:22px 0}.number{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#e3eee7;color:#285843;font-weight:700}label{display:block;font-weight:650;margin-bottom:8px}input[type=text],textarea,select{width:100%;border:1px solid #bdc9c1;border-radius:10px;padding:11px 13px;font:inherit;background:#fdfefd}textarea{min-height:145px;resize:vertical}select{width:auto}button{font:inherit;font-weight:650;border:0;border-radius:9px;background:#28604d;color:#fff;padding:11px 18px;cursor:pointer}button.secondary{background:#edf2ee;color:#315748}button.danger{background:#f7eaea;color:#952f2b}button:disabled{opacity:.45;cursor:default}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.path{padding:10px 12px;background:#f2f5f1;border-radius:9px;overflow-wrap:anywhere}.badge{background:#e6eee8;padding:5px 12px;border-radius:30px;font-size:12px;white-space:nowrap}.experimental{color:#87591a}.hidden{display:none!important}#error,#setup-error{white-space:pre-wrap;color:#a12c28}#jobs{list-style:none;padding:0;margin:0}.job{padding:14px 0;border-bottom:1px solid #e5e9e5;overflow-wrap:anywhere}.job:last-child{border:0}.job strong{display:block}.job p{white-space:pre-wrap;font-size:14px;margin:4px 0;color:#68766f}.job.failed strong{color:#a12c28}.job.complete strong{color:#28604d}.details{font-size:12px;margin-top:6px}.options{display:flex;gap:22px;align-items:flex-end;flex-wrap:wrap;margin-top:18px}.empty{padding:18px 0;color:#6d7972}footer{font-size:13px;color:#69766f;margin:28px 0}@media(max-width:600px){body{margin-top:22px}h1{font-size:27px}.badge{display:none}.card{padding:20px}}
+</style>
+<header>
+  <div><div class="eyebrow">LOCAL FIRST · 本地素材入口</div><h1>Creator Source Importer</h1>
+  <div class="muted">把公开视频和本地音视频转成可长期保存的 Markdown。</div></div>
+  <span class="badge">v0.7 · Apple Silicon</span>
+</header>
+
+<main id="setup" class="hidden">
+  <section class="card">
+    <h2>首次设置</h2>
+    <p class="muted">只需选择保存位置、转录模式并下载一次模型。媒体和转录默认只在本机处理。</p>
+    <div id="legacy" class="hidden">
+      <div class="step"><div class="number">1</div><div>
+        <label>检测到已有 Creator Source Importer 配置</label>
+        <div id="legacy-path" class="path"></div>
+        <div class="row" style="margin-top:12px"><button id="migrate">沿用已有配置（推荐）</button><button id="new-config" class="secondary">重新配置</button></div>
+      </div></div>
+    </div>
+    <div id="new-setup">
+      <div class="step"><div class="number">1</div><div>
+        <label>资料保存到哪里？</label>
+        <div class="row"><input id="library-root" type="text" placeholder="选择 Obsidian 中的目录或普通文件夹"><button id="choose-folder" class="secondary">选择文件夹</button></div>
+        <div class="muted">程序会在这里创建“油管、B站、小某书、本地媒体”四个子目录。</div>
+      </div></div>
+      <div class="step"><div class="number">2</div><div>
+        <label for="setup-model">转录模式</label>
+        <select id="setup-model"><option value="standard">标准（推荐，约 1.7 GB）</option><option value="high_quality">高质量（约 3.2 GB）</option></select>
+      </div></div>
+      <div class="row"><button id="save-settings">保存并继续</button></div>
+    </div>
+    <p id="setup-error" role="alert"></p>
+  </section>
+</main>
+
+<main id="model-setup" class="hidden">
+  <section class="card">
+    <div class="step"><div class="number">3</div><div>
+      <h2>下载本地语音识别模型</h2>
+      <p id="model-copy" class="muted"></p>
+      <div class="row"><button id="install-model">开始下载</button><span id="model-progress" class="muted"></span></div>
+      <p id="model-error"></p>
+    </div></div>
+  </section>
+</main>
+
+<main id="app" class="hidden">
+  <section class="card">
+    <label for="inputs">油管、B站、小某书链接</label>
+    <textarea id="inputs" placeholder="每行一个链接，可混合粘贴；每批最多 100 条"></textarea>
+    <div class="row" style="margin-top:10px"><button id="add-files" class="secondary">添加本地音视频</button><span id="file-count" class="muted"></span></div>
+    <div class="muted">本地支持 MP3、M4A、WAV、MP4、MOV。小某书是实验功能，需使用系统 Chrome 和自己的登录状态。</div>
+    <div class="options">
+      <div><label for="language">转录语言</label><select id="language"><option value="auto">自动识别</option><option value="zh">中文</option><option value="en">英文</option><option value="ja">日文</option><option value="ko">韩文</option></select></div>
+      <label class="muted"><input id="delete-media" type="checkbox" checked> 保存成功后删除临时媒体</label>
+    </div>
+    <div style="margin-top:18px" class="muted">保存到：<div id="output" class="path">正在连接…</div></div>
+    <div class="row" style="margin-top:18px">
+      <button id="start">开始导入</button>
+      <button id="retry" class="secondary hidden">重试失败项</button>
+      <button id="cancel" class="danger hidden">取消任务</button>
+      <button id="xhs-login" class="secondary">小某书登录</button>
+      <button id="folder" class="secondary">打开保存目录</button>
+      <span id="summary" class="muted" aria-live="polite"></span>
+    </div>
+    <p id="error" role="alert"></p>
+  </section>
+  <section class="card"><h2>导入进度</h2><div id="empty" class="empty">粘贴链接或添加本地文件后开始导入。</div><ol id="jobs" aria-live="polite"></ol></section>
+</main>
+
+<footer>默认不上传媒体、转录、保存路径或任务历史，也不收集遥测。原始识别文本与微时间戳另存为 JSON；Markdown 只做标点和语义分段，不自动总结。</footer>
+<script>
+const $=id=>document.getElementById(id);
+const token=new URLSearchParams(location.hash.slice(1)).get('token')||'';
+let current={items:[],running:false}, localFiles=[], lastSetup=null;
+async function api(path,body){const response=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{'X-Importer-Token':token,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const data=await response.json();if(!response.ok)throw Error(data.error||'操作失败');return data}
+const icons={queued:'○',metadata:'◌',downloading:'↓',transcribing:'◌',saving:'◌',complete:'✓',skipped:'↷',failed:'!',cancelled:'×',interrupted:'!'};
+function selectedMode(data){return data.setup.settings?.model_mode||$('setup-model').value}
+function route(data){
+  lastSetup=data.setup;
+  const configured=data.setup.configured;
+  const mode=selectedMode(data), installed=configured&&data.models[mode]?.installed;
+  $('setup').classList.toggle('hidden',configured);
+  $('model-setup').classList.toggle('hidden',!configured||installed);
+  $('app').classList.toggle('hidden',!configured||!installed);
+  if(!configured){
+    $('legacy').classList.toggle('hidden',!data.setup.legacy_detected);
+    $('new-setup').classList.toggle('hidden',data.setup.legacy_detected);
+    $('legacy-path').textContent=data.setup.legacy_library_root||'';
+  } else if(!installed){
+    const info=data.models[mode];
+    $('model-copy').textContent=`${mode==='standard'?'标准':'高质量'}模式需要下载约 ${(info.estimated_bytes/1e9).toFixed(1)} GB，模型保存在本机应用数据目录，不会写入资料库。`;
+    $('install-model').disabled=data.model_download.running;
+    const progress=data.model_download.progress;
+    $('model-progress').textContent=data.model_download.running?(progress?`正在下载并校验 · ${Math.round(progress*100)}%`:'正在连接并准备下载…'):'';
+    $('model-error').textContent=data.model_download.error||'';
+  }
+}
+function paint(data){
+  current=data;route(data);$('output').textContent=data.output_dir||'';
+  $('start').disabled=data.running;$('cancel').classList.toggle('hidden',!data.running);
+  $('retry').classList.toggle('hidden',data.running||!data.items.some(i=>['failed','interrupted','cancelled'].includes(i.status)));
+  $('error').textContent=data.error||'';$('empty').classList.toggle('hidden',data.items.length>0);
+  const done=data.items.filter(i=>['complete','skipped','failed','cancelled','interrupted'].includes(i.status)).length;
+  $('summary').textContent=data.items.length?`${data.running?'处理中':'已结束'} · ${done}/${data.items.length}`:'';
+  const fragment=document.createDocumentFragment();
+  for(const item of data.items){
+    const li=document.createElement('li');li.className='job '+item.status;
+    const title=document.createElement('strong');title.textContent=`${icons[item.status]||'○'} ${item.index+1}. ${item.title||item.url}`;li.append(title);
+    for(const value of [item.message,item.path,item.work_dir?'保留的任务文件：'+item.work_dir:''])if(value){const p=document.createElement('p');p.textContent=value;li.append(p)}
+    if(item.technical_detail){const details=document.createElement('details');details.className='details';const summary=document.createElement('summary');summary.textContent='查看技术详情';const pre=document.createElement('pre');pre.textContent=item.technical_detail;details.append(summary,pre);li.append(details)}
+    fragment.append(li);
+  }
+  $('jobs').replaceChildren(fragment);
+}
+async function refresh(){try{paint(await api('status'))}catch(e){$('error').textContent='无法连接应用，请重新打开。';$('start').disabled=true}}
+async function act(fn,target='error'){try{$(target).textContent='';await fn();await refresh()}catch(e){$(target).textContent=e.message}}
+$('new-config').onclick=()=>{$('legacy').classList.add('hidden');$('new-setup').classList.remove('hidden')};
+$('choose-folder').onclick=()=>act(async()=>{$('library-root').value=(await api('choose-folder',{})).path},'setup-error');
+$('save-settings').onclick=()=>act(()=>api('settings/save',{library_root:$('library-root').value,model_mode:$('setup-model').value}),'setup-error');
+$('migrate').onclick=()=>act(()=>api('settings/migrate',{}),'setup-error');
+$('install-model').onclick=()=>act(()=>api('model/install',{mode:selectedMode(current)}),'model-error');
+$('add-files').onclick=()=>act(async()=>{localFiles=[...new Set([...localFiles,...(await api('choose-media',{})).paths])];$('file-count').textContent=`已添加 ${localFiles.length} 个本地文件`});
+async function start(values){if(!values.length)throw Error('请先粘贴至少一条链接或添加本地文件。');await api('start',{inputs:values,language:$('language').value,keep_audio:!$('delete-media').checked});localFiles=[];$('file-count').textContent=''}
+$('start').onclick=()=>act(()=>start([...$('inputs').value.split(/\n/).map(s=>s.trim()).filter(Boolean),...localFiles]));
+$('retry').onclick=()=>act(()=>start(current.items.filter(i=>['failed','interrupted','cancelled'].includes(i.status)).map(i=>i.url)));
+$('cancel').onclick=()=>act(()=>api('cancel',{}));
+$('xhs-login').onclick=()=>act(async()=>{$('summary').textContent=(await api('xhs-login',{})).message});
+$('folder').onclick=()=>act(()=>api('open-folder',{}));
+refresh();setInterval(refresh,1200);
+</script>
+</html>

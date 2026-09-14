@@ -1,0 +1,11 @@
+{
+  "name": "creator-source-importer-desktop",
+  "private": true,
+  "version": "0.7.0",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.4"
+  }
+}
