@@ -21,7 +21,7 @@
 19. **当前 blockers**：Apple 签名/公证凭据、干净 Apple Silicon Mac 验收、完整许可证归集。
 20. **GitHub Release 尚缺**：签名公证后的最终 DMG、干净机结果、最终许可证包、仓库页面与所有者发布确认。
 21. **Apple Developer 尚缺**：有效 Developer ID Application、notarytool 凭据、hardened runtime 签名与 notarization/staple 验证。
-22. **回滚**：继续运行原个人版 App 即可；公共版使用独立状态目录。需要撤销迁移时可删除公共版设置或从公共状态目录的迁移备份恢复，个人版和旧配置不受影响。
+22. **回滚**：当前 Web UI 与 Desktop 共用标准 Application Support 目录；迁移前设置备份和完整个人版快照均保留。需要回退时可恢复共享设置备份，并重新启用快照中的旧 Web UI 启动器与个人版项目。
 
 ## 实际架构与原建议的差异
 
