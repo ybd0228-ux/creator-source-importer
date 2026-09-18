@@ -23,6 +23,6 @@
 
 - 新版 DMG 尚未在这台无 VPN 虚拟机里点击“开始下载”并完成 App 内安装。已有测试分别覆盖了虚拟机的完整网络传输和 DMG 内的下载实现，但不能把两项相加冒充一次虚拟机 App 端到端成功。
 - 高质量模型在虚拟机仅验证 1 MiB 分段，尚未完成 3.08 GB 全文件下载和转录。
-- 当前 DMG 仍为 ad-hoc 签名、未公证的本地测试构建，不是公开发布包。
+- 本记录中的 2026-09-17 测试 DMG 是 ad-hoc 签名、未公证的本地测试构建；它不是 GitHub Release 提供的公开安装包。公开发布的 v0.7.1 DMG 已另行完成 Developer ID 签名、Apple 公证和票据附加。
 
 来源：[魔搭标准模型](https://modelscope.cn/models/mlx-community/whisper-large-v3-turbo)、[魔搭高质量模型](https://modelscope.cn/models/mlx-community/whisper-large-v3-mlx)、[Hugging Face 标准模型](https://huggingface.co/mlx-community/whisper-large-v3-turbo)、[Hugging Face 高质量模型](https://huggingface.co/mlx-community/whisper-large-v3-mlx)。
