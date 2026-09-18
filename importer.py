@@ -29,7 +29,7 @@ STATE = Path(os.environ.get(
     "CSI_STATE_DIR",
     Path.home() / "Library/Application Support/Creator Source Importer",
 )).expanduser()
-VERSION = "0.7.0"
+VERSION = "0.7.1"
 MODELS = {
     "standard": "mlx-community/whisper-large-v3-turbo",
     "high_quality": "mlx-community/whisper-large-v3-mlx",

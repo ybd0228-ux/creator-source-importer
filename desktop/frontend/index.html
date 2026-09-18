@@ -9,7 +9,7 @@
 <header>
   <div><div class="eyebrow">LOCAL FIRST · 本地素材入口</div><h1>Creator Source Importer</h1>
   <div class="muted">把公开视频和本地音视频转成可长期保存的 Markdown。</div></div>
-  <span class="badge">v0.7 · Apple Silicon</span>
+  <span class="badge">v0.7.1 · Apple Silicon</span>
 </header>
 
 <main id="setup" class="hidden">
@@ -95,7 +95,7 @@ function route(data){
     $('legacy-path').textContent=data.setup.legacy_library_root||'';
   } else if(!installed){
     const info=data.models[mode];
-    $('model-copy').textContent=`${mode==='standard'?'标准':'高质量'}模式需要下载约 ${(info.estimated_bytes/1e9).toFixed(1)} GB，模型保存在本机应用数据目录，不会写入资料库。`;
+    $('model-copy').textContent=`${mode==='standard'?'标准':'高质量'}模式需要下载约 ${(info.estimated_bytes/1e9).toFixed(1)} GB。优先从魔搭下载，连接失败时尝试 Hugging Face；完整文件会校验，模型保存在本机应用数据目录。`;
     $('install-model').disabled=data.model_download.running;
     const progress=data.model_download.progress;
     $('model-progress').textContent=data.model_download.running?(progress?`正在下载并校验 · ${Math.round(progress*100)}%`:'正在连接并准备下载…'):'';

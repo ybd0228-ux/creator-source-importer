@@ -1,4 +1,4 @@
-# Creator Source Importer 0.7.0 Beta
+# Creator Source Importer 0.7.1 Beta
 
 Creator Source Importer 把用户主动提交的公开视频或本地媒体在 Mac 上转成可读的 Markdown。媒体转录在本机完成，输出可以保存到 Obsidian 的任意目录或普通文件夹。
 
@@ -20,13 +20,13 @@ Creator Source Importer 把用户主动提交的公开视频或本地媒体在 M
 
 ## 安装与首次使用
 
-本地开发构建位于 `desktop/src-tauri/target/release/bundle/`。当前 DMG 没有 Developer ID 签名或 Apple 公证，只用于本机开发验证，暂不适合作为普通用户公开下载。
+本地开发构建位于 `desktop/src-tauri/target/release/bundle/`。v0.7.1 的公开 DMG 已使用 Developer ID 签名并通过 Apple 公证；普通用户应从 GitHub 的 Release 页面下载，不要使用仓库中的开发构建路径。
 
 首次启动：
 
 1. 选择资料保存目录。Obsidian 目录与普通文件夹采用相同方式处理。
 2. 选择“标准（推荐）”或“高质量”。
-3. 下载并校验本地语音识别模型。
+3. 下载并校验本地语音识别模型。优先从魔搭下载；如果连接失败，再尝试 Hugging Face。中断后可重试续传。
 
 之后粘贴链接或添加本地文件，再开始任务。App 自带 Python 运行时、FFmpeg、ffprobe、Deno、yt-dlp 和 MLX 相关组件；模型在首次使用时单独下载。
 
@@ -41,6 +41,10 @@ build/runtime-venv/bin/python launch.py
 ## 使用边界
 
 仅处理用户有权访问并主动提交的内容。不要用它绕过付费、DRM、地区、年龄、验证码或其他访问控制。小某书接口可能随平台页面变化失效。
+
+## 源码与使用许可
+
+本仓库公开源码用于透明审阅和评估，不是开源项目。代码的复制、修改、再分发和商业使用均需事先书面许可；详情见 [LICENSE](LICENSE)。第三方组件的许可说明见 [THIRD_PARTY_NOTICES](docs/THIRD_PARTY_NOTICES.md)。
 
 ## 数据与隐私
 

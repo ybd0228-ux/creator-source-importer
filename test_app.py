@@ -54,7 +54,7 @@ class AppTests(unittest.TestCase):
     def test_health_and_page_show_public_platform_names(self):
         status, data = self.request("/api/health")
         self.assertEqual(status, 200)
-        self.assertEqual(data["version"], "0.7.0")
+        self.assertEqual(data["version"], "0.7.1")
         request = Request(self.url + "/")
         with build_opener(ProxyHandler({})).open(request, timeout=3) as response:
             page = response.read().decode()

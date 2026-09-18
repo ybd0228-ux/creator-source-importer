@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.1 Beta
+
+- 模型首次下载优先使用魔搭，保留 Hugging Face 作为备用来源。
+- 标准和高质量模型均固定文件大小与 SHA-256，支持下载中断后续传。
+
 ## 0.7.0 Beta
 
 - 增加 Tauri 桌面壳与冻结的 Python sidecar。

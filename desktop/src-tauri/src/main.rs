@@ -41,7 +41,7 @@ fn session_url(session: &Session) -> Option<String> {
     stream.read_to_string(&mut response).ok()?;
     let (_, body) = response.split_once("\r\n\r\n")?;
     let health: serde_json::Value = serde_json::from_str(body).ok()?;
-    if health.get("version")?.as_str()? != "0.7.0" {
+    if health.get("version")?.as_str()? != "0.7.1" {
         return None;
     }
     Some(format!(

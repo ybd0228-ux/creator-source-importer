@@ -1,10 +1,13 @@
 from pathlib import Path
 from collections import namedtuple
+from hashlib import sha256
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import tempfile
+from threading import Thread
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-from model_manager import MODEL_ESTIMATED_BYTES, ModelManager
+from model_manager import MODEL_ESTIMATED_BYTES, MODEL_FILES, ModelDownloadError, ModelManager
 
 
 class ModelManagerTests(unittest.TestCase):
@@ -63,6 +66,66 @@ class ModelManagerTests(unittest.TestCase):
         }})
         self.assertTrue(manager.delete("standard"))
         self.assertEqual(weights.read_bytes(), b"keep")
+
+    def test_modelscope_download_resumes_and_verifies_same_model(self):
+        files = {"config.json": b'{"model_type":"whisper"}', "weights.safetensors": b"model-weights"}
+        ranges = []
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                name = self.path.rsplit("/", 1)[-1]
+                data = files[name]
+                offset = int(self.headers.get("Range", "bytes=0-")[6:-1])
+                ranges.append((name, offset))
+                self.send_response(206 if offset else 200)
+                self.send_header("Content-Length", str(len(data) - offset))
+                if offset:
+                    self.send_header("Content-Range", f"bytes {offset}-{len(data)-1}/{len(data)}")
+                self.end_headers()
+                self.wfile.write(data[offset:])
+
+            def log_message(self, *_args):
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        hashes = {name: (len(data), sha256(data).hexdigest()) for name, data in files.items()}
+        manager = ModelManager(self.base, modelscope_base=f"http://127.0.0.1:{server.server_port}/models")
+        partial = manager.modelscope_dir / "standard" / "weights.safetensors.part"
+        partial.parent.mkdir(parents=True)
+        partial.write_bytes(files["weights.safetensors"][:5])
+        with patch.dict(MODEL_FILES, {"standard": hashes}):
+            installed = manager.install("standard")
+        self.assertEqual(Path(installed["path"]).joinpath("weights.safetensors").read_bytes(), files["weights.safetensors"])
+        self.assertIn(("weights.safetensors", 5), ranges)
+        weights = Path(installed["path"]) / "weights.safetensors"
+        partial.write_bytes(weights.read_bytes())
+        weights.unlink()
+        requests_before = len(ranges)
+        with patch.dict(MODEL_FILES, {"standard": hashes}):
+            manager.install("standard")
+        self.assertEqual(len(ranges), requests_before)
+        self.assertTrue(manager.delete("standard"))
+        self.assertFalse(Path(installed["path"]).exists())
+
+    def test_hugging_face_backup_is_hash_checked(self):
+        manager = ModelManager(self.base)
+        snapshot = self.base / "models" / "huggingface" / "snapshot"
+        snapshot.mkdir(parents=True)
+        (snapshot / "config.json").write_bytes(b"config")
+        (snapshot / "weights.safetensors").write_bytes(b"wrong")
+        hashes = {"config.json": (6, sha256(b"config").hexdigest()),
+                  "weights.safetensors": (5, sha256(b"right").hexdigest())}
+        with patch.dict(MODEL_FILES, {"standard": hashes}), \
+             patch.object(manager, "_download_modelscope", side_effect=ModelDownloadError("不可达")), \
+             patch("huggingface_hub.snapshot_download", return_value=str(snapshot)):
+            with self.assertRaisesRegex(RuntimeError, "备用模型文件 SHA-256 校验失败"):
+                manager.install("standard")
+            (snapshot / "weights.safetensors").write_bytes(b"right")
+            self.assertTrue(Path(manager.install("standard")["path"]).is_dir())
 
 
 if __name__ == "__main__":

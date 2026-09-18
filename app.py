@@ -76,7 +76,7 @@ def serve(output=None, port=18761, state=STATE):
         with model_lock:
             download = dict(model_state)
         if download["running"] and download["mode"] in MODEL_REPOS:
-            downloaded = model_manager.cache_size()
+            downloaded = model_manager.cache_size(download["mode"])
             estimated = model_manager.status()[download["mode"]]["estimated_bytes"]
             download.update(
                 downloaded_bytes=downloaded,

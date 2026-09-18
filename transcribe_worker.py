@@ -22,7 +22,7 @@ def main():
         (override / "config.json").is_file()
         and any((override / name).is_file() for name in ("weights.npz", "weights.safetensors"))
     ) else None
-    if ref.is_file():
+    if local is None and ref.is_file():
         candidate = repo_cache / "snapshots" / ref.read_text().strip()
         if (candidate / "config.json").is_file() and any((candidate / f).is_file() for f in ("weights.npz", "weights.safetensors")):
             local = str(candidate)
